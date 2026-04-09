@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import { auth } from '@/app/api/auth/[...nextauth]/options';
+import { redirect } from 'next/navigation';
+import UserNav from '@/components/UserNav';
 
 async function getCourses() {
   return await prisma.course.findMany({
@@ -19,6 +22,12 @@ async function getCourses() {
 }
 
 export default async function CoursesPage() {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    redirect('/login');
+  }
+
   const courses = await getCourses();
 
   return (
@@ -27,14 +36,7 @@ export default async function CoursesPage() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Kursus</h1>
-            <nav className="flex gap-4">
-              <Link href="/dashboard" className="text-blue-600 hover:underline">
-                Dashboard
-              </Link>
-              <Link href="/" className="text-blue-600 hover:underline">
-                Beranda
-              </Link>
-            </nav>
+            <UserNav userName={session.user.name || ''} currentPage="courses" />
           </div>
         </div>
       </header>

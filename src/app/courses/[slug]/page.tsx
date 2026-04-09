@@ -2,6 +2,9 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/app/api/auth/[...nextauth]/options';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import EnrollButton from './EnrollButton';
+import CertificateButton from '@/components/CertificateButton';
+import UserNav from '@/components/UserNav';
 
 async function getCourse(slug: string) {
   return await prisma.course.findUnique({
@@ -33,6 +36,15 @@ async function getEnrollment(userId: string, courseId: string) {
   });
 }
 
+async function getCertificate(userId: string, courseId: string) {
+  return await prisma.certificate.findFirst({
+    where: {
+      userId,
+      courseId,
+    },
+  });
+}
+
 export default async function CourseDetailPage({
   params,
 }: {
@@ -57,8 +69,13 @@ export default async function CourseDetailPage({
   }
 
   let enrollment = null;
+  let hasCertificate = false;
   if (session?.user?.id) {
     enrollment = await getEnrollment(session.user.id, course.id);
+    if (enrollment && enrollment.progress >= 100) {
+      const cert = await getCertificate(session.user.id, course.id);
+      hasCertificate = !!cert;
+    }
   }
 
   const totalLessons = course.modules.reduce(
@@ -72,14 +89,7 @@ export default async function CourseDetailPage({
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Detail Kursus</h1>
-            <nav className="flex gap-4">
-              <Link href="/dashboard" className="text-blue-600 hover:underline">
-                Dashboard
-              </Link>
-              <Link href="/courses" className="text-blue-600 hover:underline">
-                Kursus
-              </Link>
-            </nav>
+            <UserNav userName={session?.user?.name || ''} currentPage="courses" />
           </div>
         </div>
       </header>
@@ -162,7 +172,9 @@ export default async function CourseDetailPage({
                       {Math.round(enrollment.progress)}% selesai
                     </p>
                   </div>
-                  {course.modules[0]?.lessons[0] && (
+                  {enrollment.progress >= 100 ? (
+                    <CertificateButton courseId={course.id} hasCertificate={hasCertificate} />
+                  ) : course.modules[0]?.lessons[0] && (
                     <Link
                       href={`/courses/${course.slug}/learn/${course.modules[0].lessons[0].id}`}
                       className="block w-full py-3 bg-blue-600 text-white text-center font-semibold rounded-lg hover:bg-blue-700 transition-colors"
@@ -172,15 +184,7 @@ export default async function CourseDetailPage({
                   )}
                 </div>
               ) : session ? (
-                <form action="/api/enroll" method="POST">
-                  <input type="hidden" name="courseId" value={course.id} />
-                  <button
-                    type="submit"
-                    className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Daftar Kursus
-                  </button>
-                </form>
+                <EnrollButton course={course} />
               ) : (
                 <Link
                   href="/login"

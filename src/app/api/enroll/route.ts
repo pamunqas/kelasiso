@@ -13,7 +13,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const { courseId } = await req.json();
+    let courseId: string;
+    const contentType = req.headers.get('content-type') || '';
+    
+    if (contentType.includes('application/json')) {
+      const body = await req.json();
+      courseId = body.courseId;
+    } else {
+      const formData = await req.formData();
+      courseId = formData.get('courseId') as string;
+    }
 
     if (!courseId) {
       return NextResponse.json(

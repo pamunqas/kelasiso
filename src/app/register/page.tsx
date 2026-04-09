@@ -37,7 +37,6 @@ export default function RegisterPage() {
       if (!res.ok) {
         setError(data.error || 'Terjadi kesalahan saat pendaftaran');
       } else {
-        // Auto login after registration
         const result = await signIn('credentials', {
           redirect: false,
           email,
@@ -45,7 +44,13 @@ export default function RegisterPage() {
         });
 
         if (result?.ok) {
-          router.push('/dashboard');
+          const res = await fetch('/api/me');
+          const data = await res.json();
+          if (data.role === 'ADMIN') {
+            router.push('/admin');
+          } else {
+            router.push('/dashboard');
+          }
         } else {
           router.push('/login');
         }
@@ -58,16 +63,70 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
-    signIn('google', { callbackUrl: '/dashboard' });
+    signIn('google', { callbackUrl: '/' });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-            Daftar
-          </h1>
+    <div className="min-h-screen flex">
+      {/* Left Side - Product Info */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 p-12 flex-col justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-white mb-4">ISO 27001 LMS</h2>
+          <p className="text-blue-100 text-lg">
+            Platform pembelajaran standar keamanan informasi ISO 27001 untuk pekerja Indonesia
+          </p>
+        </div>
+        
+        <div className="space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 bg-blue-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-lg">Kurikulum Komprehensif</h3>
+              <p className="text-blue-100">Materi pembelajaran lengkap tentang ISO 27001 dari dasar hingga tingkat lanjut</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 bg-blue-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-lg">Sertifikasi Resmi</h3>
+              <p className="text-blue-100">Dapatkan sertifikat setelah menyelesaikan kursus dengan nilai minimal 70%</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 bg-blue-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-lg">Untuk Seluruh Levels</h3>
+              <p className="text-blue-100">Cocok untuk pemula hingga profesional yang ingin meningkatkan kompetensi keamanan informasi</p>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-blue-200 text-sm">© 2024 ISO 27001 LMS. All rights reserved.</p>
+      </div>
+
+      {/* Right Side - Register Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
+        <div className="w-full max-w-md">
+          <div className="lg:hidden mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">ISO 27001 LMS</h1>
+            <p className="text-gray-600 mt-2">Platform pembelajaran ISO 27001</p>
+          </div>
+          
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Daftar</h2>
           
           {error && (
             <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg">
@@ -84,7 +143,7 @@ export default function RegisterPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
             </div>
@@ -96,7 +155,7 @@ export default function RegisterPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
             </div>
@@ -108,7 +167,7 @@ export default function RegisterPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
                 minLength={6}
               />
@@ -121,7 +180,7 @@ export default function RegisterPage() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
                 minLength={6}
               />
@@ -141,7 +200,7 @@ export default function RegisterPage() {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">atau</span>
+                <span className="px-2 bg-gray-50 text-gray-500">atau</span>
               </div>
             </div>
 
@@ -173,7 +232,7 @@ export default function RegisterPage() {
 
           <p className="mt-6 text-center text-gray-600">
             Sudah punya akun?{' '}
-            <Link href="/login" className="text-blue-600 hover:underline">
+            <Link href="/login" className="text-blue-600 hover:underline font-medium">
               Masuk
             </Link>
           </p>

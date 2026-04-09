@@ -21,13 +21,14 @@ async function main() {
   console.log('Created admin user:', admin.email);
 
   // Create demo student
+  const studentPassword = await bcrypt.hash('demo123', 10);
   const student = await prisma.user.upsert({
     where: { email: 'student@demo.com' },
     update: {},
     create: {
       email: 'student@demo.com',
       name: 'Demo Student',
-      password: hashedPassword,
+      password: studentPassword,
       role: 'STUDENT',
     },
   });

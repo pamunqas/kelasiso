@@ -2,6 +2,9 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/app/api/auth/[...nextauth]/options';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import CompleteButton from './CompleteButton';
+import CertificateButton from '@/components/CertificateButton';
+import UserNav from '@/components/UserNav';
 
 async function getLesson(lessonId: string) {
   return await prisma.lesson.findUnique({
@@ -32,6 +35,18 @@ async function getLessonProgress(userId: string, lessonId: string) {
   });
 }
 
+async function getQuizAttempts(userId: string, quizId: string) {
+  return await prisma.quizAttempt.findMany({
+    where: {
+      userId,
+      quizId,
+    },
+    orderBy: {
+      attemptedAt: 'desc',
+    },
+  });
+}
+
 async function getEnrollment(userId: string, courseId: string) {
   return await prisma.enrollment.findUnique({
     where: {
@@ -39,6 +54,15 @@ async function getEnrollment(userId: string, courseId: string) {
         userId,
         courseId,
       },
+    },
+  });
+}
+
+async function getCertificate(userId: string, courseId: string) {
+  return await prisma.certificate.findFirst({
+    where: {
+      userId,
+      courseId,
     },
   });
 }
@@ -93,6 +117,8 @@ export default async function LessonPage({
 
   const course = lesson.module.course;
   const enrollment = await getEnrollment(session.user.id, course.id);
+  const certificate = await getCertificate(session.user.id, course.id);
+  const hasCertificate = !!certificate;
   
   if (!enrollment) {
     redirect(`/courses/${params.slug}`);
@@ -105,6 +131,18 @@ export default async function LessonPage({
   
   const lessonProgress = await getLessonProgress(session.user.id, lesson.id);
   const isCompleted = lessonProgress?.completed || false;
+
+  const hasQuiz = lesson.quiz ? true : false;
+  let quizPassed = false;
+  let hasTakenQuiz = false;
+  let latestAttempt = null;
+  
+  if (lesson.quiz) {
+    const quizAttempts = await getQuizAttempts(session.user.id, lesson.quiz.id);
+    quizPassed = quizAttempts.some(a => a.score >= 70);
+    hasTakenQuiz = quizAttempts.length > 0;
+    latestAttempt = quizAttempts[0] || null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -119,8 +157,11 @@ export default async function LessonPage({
                 {lesson.title}
               </h1>
             </div>
-            <div className="text-sm text-gray-500">
-              {currentIndex + 1} / {allLessons.length}
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-500">
+                {currentIndex + 1} / {allLessons.length}
+              </span>
+              <UserNav userName={session.user.name || ''} currentPage="courses" />
             </div>
           </div>
         </div>
@@ -158,31 +199,59 @@ export default async function LessonPage({
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
                     {lesson.quiz.title}
                   </h2>
-                  <Link
-                    href={`/courses/${params.slug}/quiz/${lesson.quiz.id}`}
-                    className="inline-block px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    Ambil Kuis
-                  </Link>
+                  
+                  {!hasTakenQuiz ? (
+                    <Link
+                      href={`/courses/${params.slug}/quiz/${lesson.quiz.id}?return=/courses/${params.slug}/learn/${lesson.id}`}
+                      className="inline-block px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      Ambil Kuis
+                    </Link>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">Nilai Terakhir</p>
+                            <p className={`text-2xl font-bold ${
+                              latestAttempt && latestAttempt.score >= 70 
+                                ? 'text-green-600' 
+                                : 'text-red-600'
+                            }`}>
+                              {latestAttempt?.score}%
+                            </p>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                            latestAttempt && latestAttempt.score >= 70 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-red-100 text-red-700'
+                          }`}>
+                            {latestAttempt && latestAttempt.score >= 70 ? 'Lulus' : 'Tidak Lulus'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {latestAttempt && latestAttempt.score < 70 && (
+                        <Link
+                          href={`/courses/${params.slug}/quiz/${lesson.quiz.id}`}
+                          className="inline-block px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+                        >
+                          Ulangi Kuis
+                        </Link>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Mark Complete Button */}
               <div className="mt-8 pt-6 border-t flex justify-between items-center">
-                <form action="/api/lesson-progress" method="POST">
-                  <input type="hidden" name="lessonId" value={lesson.id} />
-                  <input type="hidden" name="completed" value={isCompleted ? 'false' : 'true'} />
-                  <button
-                    type="submit"
-                    className={`px-6 py-3 font-semibold rounded-lg transition-colors ${
-                      isCompleted
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-                  >
-                    {isCompleted ? '✓ Selesai' : 'Tandai Selesai'}
-                  </button>
-                </form>
+                <CompleteButton 
+                  lessonId={lesson.id} 
+                  isCompleted={isCompleted}
+                  hasQuiz={hasQuiz}
+                  quizPassed={quizPassed}
+                />
 
                 <div className="flex gap-4">
                   {prevLesson && (
@@ -193,13 +262,23 @@ export default async function LessonPage({
                       ← Pelajaran Sebelumnya
                     </Link>
                   )}
-                  {nextLesson && (
-                    <Link
-                      href={`/courses/${params.slug}/learn/${nextLesson.id}`}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      Pelajaran Berikutnya →
-                    </Link>
+                  {nextLesson ? (
+                    isCompleted ? (
+                      <Link
+                        href={`/courses/${params.slug}/learn/${nextLesson.id}`}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      >
+                        Pelajaran Berikutnya →
+                      </Link>
+                    ) : (
+                      <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed">
+                        Selesaikan pelajaran ini dulu
+                      </span>
+                    )
+                  ) : (
+                    isCompleted && (
+                      <CertificateButton courseId={course.id} hasCertificate={hasCertificate} />
+                    )
                   )}
                 </div>
               </div>

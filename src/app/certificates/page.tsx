@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/app/api/auth/[...nextauth]/options';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import UserNav from '@/components/UserNav';
+import PrintButton from '@/components/PrintButton';
 
 async function getCertificates(userId: string) {
   return await prisma.certificate.findMany({
@@ -26,14 +28,7 @@ export default async function CertificatesPage() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Sertifikat</h1>
-            <nav className="flex gap-4">
-              <Link href="/dashboard" className="text-blue-600 hover:underline">
-                Dashboard
-              </Link>
-              <Link href="/courses" className="text-blue-600 hover:underline">
-                Kursus
-              </Link>
-            </nav>
+            <UserNav userName={session.user.name || ''} currentPage="certificates" />
           </div>
         </div>
       </header>
@@ -81,12 +76,7 @@ export default async function CertificatesPage() {
                   <p className="text-sm text-gray-500 mb-4">
                     Nomor: {cert.certificateNumber}
                   </p>
-                  <button
-                    onClick={() => window.print()}
-                    className="w-full py-2 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition-colors"
-                  >
-                    Cetak Sertifikat
-                  </button>
+                  <PrintButton />
                 </div>
               </div>
             ))}

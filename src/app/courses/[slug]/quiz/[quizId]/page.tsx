@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, use } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface Question {
@@ -17,6 +17,17 @@ export default function QuizPage({
   params: { slug: string; quizId: string };
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  let returnUrl = searchParams.get('return') || `/courses/${params.slug}`;
+  
+  // Extract just the path without query params for validation
+  const pathOnly = returnUrl.split('?')[0];
+  
+  // Validate returnUrl - must include /learn/lessonId
+  if (!pathOnly.includes('/learn/')) {
+    returnUrl = `/courses/${params.slug}`;
+  }
+  
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -91,8 +102,8 @@ export default function QuizPage({
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-4">
-          <Link href={`/courses/${params.slug}`} className="text-blue-600 hover:underline">
-            ← Kembali ke kursus
+          <Link href={returnUrl} className="text-blue-600 hover:underline">
+            ← Kembali ke pelajaran
           </Link>
         </div>
       </header>
@@ -126,10 +137,10 @@ export default function QuizPage({
                   Coba Lagi
                 </button>
                 <Link
-                  href={`/courses/${params.slug}`}
+                  href={returnUrl}
                   className="block mt-4 text-blue-600 hover:underline"
                 >
-                  Kembali ke kursus
+                  Kembali ke pelajaran
                 </Link>
               </div>
             </div>

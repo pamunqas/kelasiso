@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/app/api/auth/[...nextauth]/options';
+import { randomUUID } from 'crypto';
+
+function generateSecureCertNumber(): string {
+  return `ISO27001-${Date.now()}-${randomUUID().split('-')[0].toUpperCase()}`;
+}
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +18,21 @@ export async function POST(req: Request) {
       );
     }
 
-    const { lessonId, completed } = await req.json();
+    let lessonId: string;
+    let completed: boolean;
+    
+    const contentType = req.headers.get('content-type') || '';
+    
+    if (contentType.includes('application/json')) {
+      const body = await req.json();
+      lessonId = body.lessonId;
+      completed = body.completed;
+    } else {
+      const formData = await req.formData();
+      lessonId = formData.get('lessonId') as string;
+      const completedValue = formData.get('completed') as string;
+      completed = completedValue === 'true';
+    }
 
     if (!lessonId) {
       return NextResponse.json(
@@ -40,6 +59,23 @@ export async function POST(req: Request) {
 
     const courseId = lesson.module.course.id;
 
+    // Verify user is enrolled in the course
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId: session.user.id,
+          courseId,
+        },
+      },
+    });
+
+    if (!enrollment) {
+      return NextResponse.json(
+        { error: 'Anda belum terdaftar di kursus ini' },
+        { status: 403 }
+      );
+    }
+
     // Update lesson progress
     const progress = await prisma.lessonProgress.upsert({
       where: {
@@ -48,11 +84,11 @@ export async function POST(req: Request) {
           lessonId,
         },
       },
-      update: { completed: completed === 'true' },
+      update: { completed },
       create: {
         userId: session.user.id,
         lessonId,
-        completed: completed === 'true',
+        completed,
       },
     });
 
@@ -85,6 +121,38 @@ export async function POST(req: Request) {
       },
       data: { progress: progressPercent },
     });
+
+    // Generate certificate if 100% and not already generated
+    if (progressPercent >= 100) {
+      const existingCert = await prisma.certificate.findFirst({
+        where: {
+          userId: session.user.id,
+          courseId,
+        },
+      });
+
+      if (!existingCert) {
+        const certNumber = generateSecureCertNumber();
+        
+        await prisma.certificate.create({
+          data: {
+            userId: session.user.id,
+            courseId,
+            certificateNumber: certNumber,
+          },
+        });
+
+        await prisma.enrollment.update({
+          where: {
+            userId_courseId: {
+              userId: session.user.id,
+              courseId,
+            },
+          },
+          data: { completedAt: new Date() },
+        });
+      }
+    }
 
     return NextResponse.json(
       { message: 'Progress updated', progress, courseProgress: progressPercent },

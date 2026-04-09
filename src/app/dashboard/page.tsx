@@ -2,6 +2,9 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/app/api/auth/[...nextauth]/options';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import UserNav from '@/components/UserNav';
+import CertificateButton from '@/components/CertificateButton';
+import PrintButton from '@/components/PrintButton';
 
 async function getEnrollments(userId: string) {
   return await prisma.enrollment.findMany({
@@ -46,15 +49,7 @@ export default async function DashboardPage() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <nav className="flex gap-4">
-              <Link href="/courses" className="text-blue-600 hover:underline">
-                Kursus
-              </Link>
-              <Link href="/certificates" className="text-blue-600 hover:underline">
-                Sertifikat
-              </Link>
-              <span className="text-gray-600">{session.user.name}</span>
-            </nav>
+            <UserNav userName={session.user.name || ''} currentPage="dashboard" />
           </div>
         </div>
       </header>
@@ -114,7 +109,12 @@ export default async function DashboardPage() {
                         </div>
                       </div>
 
-                      {firstLesson && (
+                      {enrollment.progress >= 100 ? (
+                        <CertificateButton 
+                          courseId={course.id} 
+                          hasCertificate={certificates.some(c => c.courseId === course.id)} 
+                        />
+                      ) : firstLesson && (
                         <Link
                           href={`/courses/${course.slug}/learn/${firstLesson.id}`}
                           className="block w-full py-2 bg-blue-600 text-white text-center font-semibold rounded-lg hover:bg-blue-700 transition-colors"
@@ -148,17 +148,12 @@ export default async function DashboardPage() {
                       Sertifikat Penyelesaian
                     </h3>
                   </div>
-                  <div className="p-6">
+                    <div className="p-6">
                     <p className="text-gray-600 mb-2">{cert.course.title}</p>
                     <p className="text-sm text-gray-500 mb-4">
                       Nomor: {cert.certificateNumber}
                     </p>
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full py-2 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition-colors"
-                    >
-                      Cetak Sertifikat
-                    </button>
+                    <PrintButton />
                   </div>
                 </div>
               ))}
