@@ -59,22 +59,21 @@ export async function POST(req: Request) {
 
     const courseId = lesson.module.course.id;
 
-    // Verify user is enrolled in the course
-    const enrollment = await prisma.enrollment.findUnique({
+    // Ensure enrollment exists
+    await prisma.enrollment.upsert({
       where: {
         userId_courseId: {
           userId: session.user.id,
           courseId,
         },
       },
+      update: {},
+      create: {
+        userId: session.user.id,
+        courseId,
+        progress: 0,
+      },
     });
-
-    if (!enrollment) {
-      return NextResponse.json(
-        { error: 'Anda belum terdaftar di kursus ini' },
-        { status: 403 }
-      );
-    }
 
     // Update lesson progress
     const progress = await prisma.lessonProgress.upsert({

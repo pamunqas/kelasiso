@@ -39,16 +39,20 @@ export default function QuizPage({
     fetch(`/api/quiz/${params.quizId}`)
       .then(res => res.json())
       .then(data => {
-        if (data.questions) {
+        if (data.error) {
+          setError(data.error);
+        } else if (data.questions && data.questions.length > 0) {
           setQuestions(data.questions.map((q: any) => ({
             ...q,
             options: JSON.parse(q.options),
           })));
+        } else {
+          setError('Tidak ada pertanyaan tersedia untuk kuis ini.');
         }
         setLoading(false);
       })
       .catch(err => {
-        setError('Failed to load quiz');
+        setError('Gagal memuat kuis');
         setLoading(false);
       });
   }, [params.quizId]);

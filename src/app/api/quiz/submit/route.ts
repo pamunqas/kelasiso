@@ -70,25 +70,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const courseId = quiz.lesson.module.course.id;
-
-    // Verify user is enrolled in the course
-    const enrollment = await prisma.enrollment.findUnique({
-      where: {
-        userId_courseId: {
-          userId: session.user.id,
-          courseId,
-        },
-      },
-    });
-
-    if (!enrollment) {
-      return NextResponse.json(
-        { error: 'Anda belum terdaftar di kursus ini' },
-        { status: 403 }
-      );
-    }
-
     // Calculate score server-side (ignore client-provided score)
     const calculatedScore = await calculateScoreServerSide(quizId, answers);
 
@@ -104,6 +85,7 @@ export async function POST(req: Request) {
     // Auto-complete lesson if score >= 70
     if (calculatedScore >= 70) {
       const lessonId = quiz.lessonId;
+      const courseId = quiz.lesson.module.course.id;
       
       await prisma.lessonProgress.upsert({
         where: {
