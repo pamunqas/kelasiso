@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/app/api/auth/[...nextauth]/options';
+import { getFrameworkConfig } from '@/lib/framework-colors';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import UserNav from '@/components/UserNav';
@@ -48,7 +49,10 @@ export default async function DashboardPage() {
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <Link href="/dashboard" className="flex items-center gap-3">
+              <img src="/logo.svg" alt="kelasISO Logo" className="w-10 h-10" />
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            </Link>
             <UserNav userName={session.user.name || ''} currentPage="dashboard" />
           </div>
         </div>
@@ -83,13 +87,16 @@ export default async function DashboardPage() {
                 );
                 const firstLesson = course.modules[0]?.lessons[0];
                 
+                const fw = getFrameworkConfig(course.category?.toLowerCase() || 'iso27001');
+                const courseColor = fw.card;
+                
                 return (
                   <div
                     key={enrollment.id}
                     className="bg-white rounded-lg shadow-md overflow-hidden"
                   >
-                    <div className="h-32 bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center">
-                      <span className="text-white text-3xl font-bold">ISO</span>
+                    <div className={`h-32 bg-gradient-to-r ${courseColor} flex items-center justify-center`}>
+                      <span className="text-white text-3xl font-bold">{course.category || 'ISO'}</span>
                     </div>
                     <div className="p-6">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -103,7 +110,7 @@ export default async function DashboardPage() {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className="bg-blue-600 h-2 rounded-full"
+                            className={`h-2 rounded-full ${fw.bgSolid}`}
                             style={{ width: `${enrollment.progress}%` }}
                           ></div>
                         </div>
@@ -117,7 +124,7 @@ export default async function DashboardPage() {
                       ) : firstLesson && (
                         <Link
                           href={`/courses/${course.slug}/learn/${firstLesson.id}`}
-                          className="block w-full py-2 bg-blue-600 text-white text-center font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                          className={`block w-full py-2 text-white text-center font-semibold rounded-lg transition-colors ${fw.bgSolid} ${fw.hoverBg}`}
                         >
                           {enrollment.progress > 0 ? 'Lanjutkan' : 'Mulai Belajar'}
                         </Link>
@@ -137,26 +144,29 @@ export default async function DashboardPage() {
               Sertifikat
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {certificates.map((cert) => (
-                <div
-                  key={cert.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden border-2 border-yellow-400"
-                >
-                  <div className="bg-yellow-50 p-6 text-center">
-                    <div className="text-4xl mb-2">🏆</div>
-                    <h3 className="font-bold text-gray-900">
-                      Sertifikat Penyelesaian
-                    </h3>
-                  </div>
-                    <div className="p-6">
-                    <p className="text-gray-600 mb-2">{cert.course.title}</p>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Nomor: {cert.certificateNumber}
-                    </p>
-                    <PrintButton />
-                  </div>
-                </div>
-              ))}
+               {certificates.map((cert) => {
+                 const config = getFrameworkConfig(cert.course.category);
+                 return (
+                   <div
+                     key={cert.id}
+                     className={`bg-white rounded-lg shadow-md overflow-hidden border-2 ${config.borderColor}`}
+                   >
+                     <div className={`${config.bgLight} p-6 text-center`}>
+                       <div className="text-4xl mb-2">🏆</div>
+                       <h3 className="font-bold text-gray-900">
+                         Sertifikat Penyelesaian
+                       </h3>
+                     </div>
+                     <div className="p-6">
+                       <p className="text-gray-600 mb-2">{cert.course.title}</p>
+                       <p className="text-sm text-gray-500 mb-4">
+                         Nomor: {cert.certificateNumber}
+                       </p>
+                       <PrintButton />
+                     </div>
+                   </div>
+                 );
+               })}
             </div>
           </section>
         )}

@@ -16,9 +16,16 @@
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
     "@prisma/client": "^5.22.0",
+    "@tiptap/extension-list-item": "^3.22.3",
+    "@tiptap/extension-placeholder": "^3.22.3",
+    "@tiptap/extension-text-align": "^3.22.3",
+    "@tiptap/extension-underline": "^3.22.3",
+    "@tiptap/react": "^3.22.3",
+    "@tiptap/starter-kit": "^3.22.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/react": "^19.2.14",
     "bcryptjs": "^3.0.3",
+    "marked": "^18.0.0",
     "next": "^14.2.35",
     "next-auth": "^5.0.0-beta.30",
     "prisma": "^5.22.0",
@@ -27,6 +34,7 @@
     "typescript": "^6.0.2"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^25.5.2",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.9",

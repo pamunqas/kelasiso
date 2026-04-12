@@ -82,8 +82,8 @@ export async function POST(req: Request) {
       },
     });
 
-    // Auto-complete lesson if score >= 70
-    if (calculatedScore >= 70) {
+    // Auto-complete lesson if score >= 75
+    if (calculatedScore >= 75) {
       const lessonId = quiz.lessonId;
       const courseId = quiz.lesson.module.course.id;
       

@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -51,9 +52,13 @@ export default function LoginPage() {
       {/* Left Side - Product Info */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 p-12 flex-col justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-white mb-4">ISO 27001 LMS</h2>
+          <Link href={session?.user?.role === 'ADMIN' ? '/admin' : session?.user ? '/dashboard' : '/login'}>
+            <div className="flex items-center gap-3 mb-4 cursor-pointer">
+              <img src="/logo.svg" alt="kelasISO Logo" className="w-24 h-24" />
+            </div>
+          </Link>
           <p className="text-blue-100 text-lg">
-            Platform pembelajaran standar keamanan informasi ISO 27001 untuk pekerja Indonesia
+            Platform pembelajaran standar ISO untuk pekerja Indonesia
           </p>
         </div>
         
@@ -66,7 +71,7 @@ export default function LoginPage() {
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Kurikulum Komprehensif</h3>
-              <p className="text-blue-100">Materi pembelajaran lengkap tentang ISO 27001 dari dasar hingga tingkat lanjut</p>
+              <p className="text-blue-100">Materi pembelajaran lengkap tentang standar ISO dari dasar hingga tingkat lanjut</p>
             </div>
           </div>
           
@@ -90,20 +95,24 @@ export default function LoginPage() {
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Untuk Seluruh Levels</h3>
-              <p className="text-blue-100">Cocok untuk pemula hingga profesional yang ingin meningkatkan kompetensi keamanan informasi</p>
+              <p className="text-blue-100">Cocok untuk pemula hingga profesional yang ingin meningkatkan kompetensi di berbagai standar ISO</p>
             </div>
           </div>
         </div>
 
-        <p className="text-blue-200 text-sm">© 2024 ISO 27001 LMS. All rights reserved.</p>
+        <p className="text-blue-200 text-sm">© 2026 kelasISO. All rights reserved.</p>
       </div>
 
       {/* Right Side - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">ISO 27001 LMS</h1>
-            <p className="text-gray-600 mt-2">Platform pembelajaran ISO 27001</p>
+            <Link href={session?.user?.role === 'ADMIN' ? '/admin' : session?.user ? '/dashboard' : '/login'}>
+              <div className="flex flex-col items-center gap-3 cursor-pointer">
+                <img src="/logo.svg" alt="kelasISO Logo" className="w-20 h-20" />
+                <p className="text-gray-600 mt-2">Platform pembelajaran standar ISO</p>
+              </div>
+            </Link>
           </div>
           
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Masuk</h2>

@@ -9,7 +9,7 @@ interface Module {
   id: string;
   title: string;
   order: number;
-  lessons: { id: string; title: string; order: number }[];
+  lessons: { id: string; title: string; order: number; quiz?: { id: string } }[];
 }
 
 interface Course {
@@ -17,6 +17,8 @@ interface Course {
   title: string;
   description: string;
   slug: string;
+  category: string;
+  framework: string;
   isPublished: boolean;
   modules: Module[];
 }
@@ -227,6 +229,55 @@ export default function EditCoursePage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Framework</label>
+                <select
+                  value={course.framework || 'ISO'}
+                  onChange={(e) => {
+                    setCourse({ ...course, framework: e.target.value, category: '' });
+                    handleSaveCourse('framework', e.target.value);
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="ISO">ISO</option>
+                  <option value="NIST">NIST</option>
+                  <option value="CIS">CIS</option>
+                  <option value="LAINNYA">Lainnya</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <select
+                  value={course.category || ''}
+                  onChange={(e) => {
+                    setCourse({ ...course, category: e.target.value });
+                    handleSaveCourse('category', e.target.value);
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Pilih Kategori</option>
+                  <option value="ISO27001">ISO 27001</option>
+                  <option value="ISO27002">ISO 27002</option>
+                  <option value="ISO27005">ISO 27005</option>
+                  <option value="ISO27701">ISO 27701</option>
+                  <option value="ISO9001">ISO 9001</option>
+                  <option value="ISO14001">ISO 14001</option>
+                  <option value="ISO45001">ISO 45001</option>
+                  <option value="ISO22301">ISO 22301</option>
+                  <option value="ISO31000">ISO 31000</option>
+                  <option value="NIST80053">NIST 800-53</option>
+                  <option value="NISTCSF">NIST Cybersecurity Framework</option>
+                  <option value="CISControls">CIS Controls</option>
+                  <option value="GDPR">GDPR</option>
+                  <option value="PCIDSS">PCI-DSS</option>
+                  <option value="SOC2">SOC 2</option>
+                  <option value="LAINNYA">Lainnya</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -267,7 +318,7 @@ export default function EditCoursePage() {
                     <ul className="space-y-2">
                       {module.lessons.map((lesson, lIdx) => (
                         <li key={lesson.id} className="flex items-center justify-between text-sm">
-                          <span>{lIdx + 1}. {lesson.title}</span>
+                          <span>{lIdx + 1}. {lesson.title} {lesson.quiz && <span className="text-purple-600 text-xs ml-1">(Kuis)</span>}</span>
                           <div className="flex gap-2">
                             <Link 
                               href={`/admin/courses/${courseId}/modules/${module.id}/lessons/${lesson.id}`}
@@ -275,6 +326,14 @@ export default function EditCoursePage() {
                             >
                               Edit
                             </Link>
+                            {lesson.quiz && (
+                              <Link 
+                                href={`/admin/quizzes/${lesson.quiz.id}`}
+                                className="text-purple-600 hover:underline"
+                              >
+                                Edit Kuis
+                              </Link>
+                            )}
                             <button 
                               onClick={() => handleDeleteLesson(module.id, lesson.id)}
                               className="text-red-600 hover:underline"

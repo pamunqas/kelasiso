@@ -1,7 +1,7 @@
-# ISO 27001 LMS - Agent Notes
+# kelasISO - Agent Notes
 
 ## Project Overview
-Full-stack Learning Management System for Indonesian workers to learn ISO 27001.
+Full-stack Learning Management System for Indonesian workers to learn ISO Standards.
 
 ## Tech Stack
 - Next.js 14 with TypeScript

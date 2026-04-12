@@ -76,6 +76,7 @@ async function getAllLessons(courseId: string) {
         include: {
           lessons: {
             orderBy: { order: 'asc' },
+            include: { quiz: true },
           },
         },
       },
@@ -136,12 +137,24 @@ export default async function LessonPage({
   let quizPassed = false;
   let hasTakenQuiz = false;
   let latestAttempt = null;
+  let canAccessQuiz = false;
   
   if (lesson.quiz) {
     const quizAttempts = await getQuizAttempts(session.user.id, lesson.quiz.id);
-    quizPassed = quizAttempts.some(a => a.score >= 70);
+    quizPassed = quizAttempts.some(a => a.score >= 75);
     hasTakenQuiz = quizAttempts.length > 0;
     latestAttempt = quizAttempts[0] || null;
+    
+    // Check if user has completed all material modules (not quiz modules)
+    const materialLessons = allLessons.filter(l => !l.quiz);
+    const completedMaterialLessons = await prisma.lessonProgress.count({
+      where: {
+        userId: session.user.id,
+        lessonId: { in: materialLessons.map(l => l.id) },
+        completed: true,
+      },
+    });
+    canAccessQuiz = completedMaterialLessons >= materialLessons.length;
   }
 
   return (
@@ -188,8 +201,11 @@ export default async function LessonPage({
 
               {/* Text Content */}
               {lesson.type === 'TEXT' && lesson.content && (
-                <div className="prose max-w-none mb-6">
-                  <div dangerouslySetInnerHTML={{ __html: lesson.content }} />
+                <div className="prose prose-lg max-w-none mb-6">
+                  <div 
+                    className="lesson-content"
+                    dangerouslySetInnerHTML={{ __html: lesson.content }} 
+                  />
                 </div>
               )}
 
@@ -200,7 +216,13 @@ export default async function LessonPage({
                     {lesson.quiz.title}
                   </h2>
                   
-                  {!hasTakenQuiz ? (
+                  {!canAccessQuiz ? (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-yellow-700">
+                        Selesaikan semua modul terlebih dahulu untuk mengakses kuis.
+                      </p>
+                    </div>
+                  ) : !hasTakenQuiz ? (
                     <Link
                       href={`/courses/${params.slug}/quiz/${lesson.quiz.id}?return=/courses/${params.slug}/learn/${lesson.id}`}
                       className="inline-block px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
@@ -214,7 +236,7 @@ export default async function LessonPage({
                           <div>
                             <p className="text-sm text-gray-500">Nilai Terakhir</p>
                             <p className={`text-2xl font-bold ${
-                              latestAttempt && latestAttempt.score >= 70 
+                              latestAttempt && latestAttempt.score >= 75 
                                 ? 'text-green-600' 
                                 : 'text-red-600'
                             }`}>
@@ -222,16 +244,16 @@ export default async function LessonPage({
                             </p>
                           </div>
                           <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                            latestAttempt && latestAttempt.score >= 70 
+                            latestAttempt && latestAttempt.score >= 75 
                               ? 'bg-green-100 text-green-700' 
                               : 'bg-red-100 text-red-700'
                           }`}>
-                            {latestAttempt && latestAttempt.score >= 70 ? 'Lulus' : 'Tidak Lulus'}
+                            {latestAttempt && latestAttempt.score >= 75 ? 'Lulus' : 'Tidak Lulus'}
                           </div>
                         </div>
                       </div>
                       
-                      {latestAttempt && latestAttempt.score < 70 && (
+                      {latestAttempt && latestAttempt.score < 75 && canAccessQuiz && (
                         <Link
                           href={`/courses/${params.slug}/quiz/${lesson.quiz.id}`}
                           className="inline-block px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
@@ -276,7 +298,7 @@ export default async function LessonPage({
                       </span>
                     )
                   ) : (
-                    isCompleted && (
+                    hasQuiz && isCompleted && quizPassed && (
                       <CertificateButton courseId={course.id} hasCertificate={hasCertificate} />
                     )
                   )}

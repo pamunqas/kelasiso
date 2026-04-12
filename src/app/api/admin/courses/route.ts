@@ -34,9 +34,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, description, isPublished } = await req.json();
+    const { title, description, category, framework, isPublished } = await req.json();
 
-    if (!title || !description) {
+    if (!title || !description || !category || !framework) {
       return NextResponse.json({ error: 'Data tidak lengkap' }, { status: 400 });
     }
 
@@ -50,6 +50,8 @@ export async function POST(req: Request) {
         title,
         description,
         slug: `${slug}-${Date.now()}`,
+        category,
+        framework,
         isPublished: isPublished || false,
       },
     });

@@ -37,14 +37,21 @@ export default function QuizPage({
 
   useEffect(() => {
     fetch(`/api/quiz/${params.quizId}`)
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          router.push('/login');
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
+        if (!data) return;
         if (data.error) {
           setError(data.error);
         } else if (data.questions && data.questions.length > 0) {
           setQuestions(data.questions.map((q: any) => ({
             ...q,
-            options: JSON.parse(q.options),
+            options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options,
           })));
         } else {
           setError('Tidak ada pertanyaan tersedia untuk kuis ini.');
@@ -55,28 +62,30 @@ export default function QuizPage({
         setError('Gagal memuat kuis');
         setLoading(false);
       });
-  }, [params.quizId]);
+  }, [params.quizId, router]);
 
   const handleAnswer = (questionId: string, answer: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
   const handleSubmit = async () => {
-    const correct = questions.filter(q => answers[q.id] === q.correctAnswer).length;
-    const scorePercent = (correct / questions.length) * 100;
-    setScore(scorePercent);
     setSubmitted(true);
+    setScore(0);
 
-    // Save attempt
-    await fetch('/api/quiz/submit', {
+    // Save attempt and let server calculate score
+    const res = await fetch('/api/quiz/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         quizId: params.quizId,
         answers,
-        score: scorePercent,
       }),
     });
+
+    const data = await res.json();
+    if (data.score !== undefined) {
+      setScore(data.score);
+    }
   };
 
   if (loading) {
@@ -119,13 +128,13 @@ export default function QuizPage({
           {submitted ? (
             <div className="bg-white rounded-lg shadow-md p-8 text-center">
               <div className="text-6xl mb-4">
-                {score >= 70 ? '🎉' : '📚'}
+                {score >= 75 ? '🎉' : '📚'}
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Skor Anda: {Math.round(score)}%
               </h2>
               <p className="text-gray-600 mb-6">
-                {score >= 70
+                {score >= 75
                   ? 'Selamat! Anda lulus kuis ini.'
                   : 'Silakan coba lagi untuk memahami materi lebih baik.'}
               </p>

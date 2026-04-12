@@ -72,10 +72,8 @@ export default async function CourseDetailPage({
   let hasCertificate = false;
   if (session?.user?.id) {
     enrollment = await getEnrollment(session.user.id, course.id);
-    if (enrollment && enrollment.progress >= 100) {
-      const cert = await getCertificate(session.user.id, course.id);
-      hasCertificate = !!cert;
-    }
+    const cert = await getCertificate(session.user.id, course.id);
+    hasCertificate = !!cert;
   }
 
   const totalLessons = course.modules.reduce(
@@ -98,57 +96,89 @@ export default async function CourseDetailPage({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Course Info */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            {/* Course Header Card */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-8 text-white mb-6">
+              <h2 className="text-4xl font-bold mb-4">
                 {course.title}
               </h2>
-              <p className="text-gray-600 mb-6">{course.description}</p>
+              <p className="text-blue-100 text-lg mb-6">{course.description}</p>
               
-              <div className="flex gap-4 text-sm text-gray-500 mb-6">
-                <span>{course.modules.length} Modul</span>
-                <span>{totalLessons} Pelajaran</span>
+              <div className="flex gap-6 text-blue-100">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4.125-3.127a.993.993 0 00.488-.814zM9.843 3.503a1 1 0 011.414 0l4.125 3.127a.999.999 0 01.257.356L16.467 8.05a1 1 0 00.488.814l-7 3a1 1 0 01-1.788 0l-4.125-3.127a1 1 0 00-.257-.356L9.843 3.503z"/>
+                  </svg>
+                  <span>{course.modules.length} Modul</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                  </svg>
+                  <span>{totalLessons} Pelajaran</span>
+                </div>
               </div>
+            </div>
 
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                Kurikulum
-              </h3>
-              <div className="space-y-4">
+            {/* Curriculum */}
+            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+              <div className="bg-gray-50 px-6 py-4 border-b">
+                <h3 className="text-xl font-bold text-gray-900">
+                  Kurikulum Kursus
+                </h3>
+              </div>
+              <div className="divide-y">
                 {course.modules.map((module, moduleIndex) => (
-                  <div key={module.id} className="border rounded-lg overflow-hidden">
-                    <div className="bg-gray-50 px-4 py-3 border-b">
-                      <h4 className="font-semibold text-gray-900">
-                        Modul {moduleIndex + 1}: {module.title}
-                      </h4>
+                  <div key={module.id} className="hover:bg-blue-50 transition-colors">
+                    {/* Module Header */}
+                    <div className="px-6 py-4 flex items-center gap-4">
+                      <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                        {moduleIndex + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">
+                          {module.title}
+                        </h4>
+                        <span className="text-sm text-gray-500">
+                          {module.lessons.length} pelajaran
+                        </span>
+                      </div>
+                      {module.lessons.some(l => l.quiz) && (
+                        <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                          + Quiz
+                        </span>
+                      )}
                     </div>
-                    <div className="divide-y">
-                      {module.lessons.map((lesson, lessonIndex) => (
-                        <div
-                          key={lesson.id}
-                          className="px-4 py-3 flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-gray-500 text-sm">
-                              {lessonIndex + 1}.
+                    
+                    {/* Lessons */}
+                    <div className="bg-gray-50 px-6 py-2 pb-4">
+                      <div className="space-y-2 ml-14">
+                        {module.lessons.map((lesson, lessonIndex) => (
+                          <div
+                            key={lesson.id}
+                            className="flex items-center gap-3 text-sm"
+                          >
+                            <span className="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded-full text-xs">
+                              {lessonIndex + 1}
                             </span>
                             <span className="text-gray-700">{lesson.title}</span>
                             {lesson.type === 'VIDEO' && (
-                              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">
+                              <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded">
                                 Video
                               </span>
                             )}
                             {lesson.type === 'TEXT' && (
-                              <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded">
+                              <span className="px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded">
                                 Teks
                               </span>
                             )}
                             {lesson.quiz && (
-                              <span className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded">
+                              <span className="px-2 py-0.5 bg-purple-100 text-purple-600 text-xs rounded">
                                 Kuis
                               </span>
                             )}
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -172,7 +202,9 @@ export default async function CourseDetailPage({
                       {Math.round(enrollment.progress)}% selesai
                     </p>
                   </div>
-                  {enrollment.progress >= 100 ? (
+                  {hasCertificate ? (
+                    <CertificateButton courseId={course.id} hasCertificate={hasCertificate} />
+                  ) : enrollment && enrollment.progress >= 100 ? (
                     <CertificateButton courseId={course.id} hasCertificate={hasCertificate} />
                   ) : course.modules[0]?.lessons[0] && (
                     <Link

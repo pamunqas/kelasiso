@@ -12,8 +12,51 @@ export default function NewCoursePage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    category: 'ISO27001',
+    framework: 'ISO',
     isPublished: false,
   });
+
+  const frameworks = [
+    { value: 'ISO', label: 'ISO' },
+    { value: 'NIST', label: 'NIST' },
+    { value: 'CIS', label: 'CIS' },
+    { value: 'LAINNYA', label: 'Lainnya' },
+  ];
+
+  const categoriesByFramework: Record<string, { value: string; label: string }[]> = {
+    ISO: [
+      { value: 'ISO27001', label: 'ISO 27001' },
+      { value: 'ISO27002', label: 'ISO 27002' },
+      { value: 'ISO27005', label: 'ISO 27005' },
+      { value: 'ISO27701', label: 'ISO 27701' },
+      { value: 'ISO17001', label: 'ISO 17001' },
+      { value: 'ISO9001', label: 'ISO 9001' },
+      { value: 'ISO14001', label: 'ISO 14001' },
+      { value: 'ISO45001', label: 'ISO 45001' },
+      { value: 'ISO22301', label: 'ISO 22301' },
+      { value: 'ISO31000', label: 'ISO 31000' },
+      { value: 'ISO27001', label: 'ISO 27001' },
+    ],
+    NIST: [
+      { value: 'NIST80053', label: 'NIST 800-53' },
+      { value: 'NISTCSF', label: 'NIST Cybersecurity Framework' },
+      { value: 'NIST800171', label: 'NIST 800-171' },
+    ],
+    CIS: [
+      { value: 'CISControls', label: 'CIS Controls' },
+      { value: 'CISBenchmarks', label: 'CIS Benchmarks' },
+    ],
+    LAINNYA: [
+      { value: 'GDPR', label: 'GDPR' },
+      { value: 'PCIDSS', label: 'PCI-DSS' },
+      { value: 'SOC2', label: 'SOC 2' },
+      { value: 'HIPAA', label: 'HIPAA' },
+      { value: 'LAINNYA', label: 'Lainnya' },
+    ],
+  };
+
+  const availableCategories = categoriesByFramework[formData.framework] || categoriesByFramework['ISO'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +131,39 @@ export default function NewCoursePage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Framework
+                </label>
+                <select
+                  value={formData.framework}
+                  onChange={(e) => setFormData({ ...formData, framework: e.target.value, category: '' })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  {frameworks.map(fw => (
+                    <option key={fw.value} value={fw.value}>{fw.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kategori
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Pilih Kategori</option>
+                  {availableCategories.map(cat => (
+                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             
             <div className="flex items-center gap-2">

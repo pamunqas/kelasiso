@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import UserNav from '@/components/UserNav';
+import TiptapEditor from '@/components/TiptapEditor';
 
 interface Lesson {
   id: string;
@@ -174,14 +175,11 @@ export default function EditLessonPage() {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Konten (HTML)
+              Konten
             </label>
-            <textarea
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              rows={10}
-              placeholder="<h2>Judul</h2><p>Deskripsi...</p>"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm"
+            <TiptapEditor
+              content={formData.content}
+              onChange={(content) => setFormData({ ...formData, content })}
             />
           </div>
 

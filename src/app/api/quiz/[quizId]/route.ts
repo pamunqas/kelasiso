@@ -44,7 +44,6 @@ export async function GET(
       options: JSON.parse(q.options),
     }));
 
-    // Skip enrollment check for now - just require login
     return NextResponse.json({ quiz: { id: quiz.id, title: quiz.title, lessonId: quiz.lessonId }, questions });
   } catch (error) {
     console.error('Quiz error:', error);

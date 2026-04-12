@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = "file:/Users/pamungkas/project/kelasiso/dev.db"
 }
 
 model User {
@@ -32,7 +32,10 @@ model Course {
   description  String
   thumbnail    String?
   slug         String    @unique
-  isPublished Boolean   @default(false)
+  category     String    @default("ISO27001") // ISO27001, ISO9001, etc.
+  framework    String    @default("ISO") // ISO, NIST, etc.
+  isPublished  Boolean   @default(false)
+  order        Int       @default(0) // For sorting courses
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   modules      Module[]
@@ -54,9 +57,10 @@ model Module {
 model Lesson {
   id           String    @id @default(cuid())
   title        String
-  type         String    // VIDEO, TEXT
+  type         String    // VIDEO, TEXT, IMAGE
   content      String?   // Markdown content for text lessons
   videoUrl     String?   // YouTube/Vimeo URL for video lessons
+  imageUrl     String?   // URL for image lessons
   order        Int
   moduleId     String
   module       Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)

@@ -1,6 +1,6 @@
-# ISO 27001 LMS
+# kelasISO
 
-Platform pembelajaran Learning Management System untuk mempelajari standar keamanan informasi ISO 27001.
+Platform pembelajaran Learning Management System untuk mempelajari standar ISO.
 
 ## Requirements
 

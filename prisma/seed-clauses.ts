@@ -610,6 +610,8 @@ async function main() {
         title: courseData.title,
         description: courseData.description,
         slug: courseData.slug,
+        category: 'ISO27001',
+        framework: 'ISO',
         isPublished: true,
       },
     });

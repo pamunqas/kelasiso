@@ -6,8 +6,8 @@ import { Providers } from '@/components/Providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ISO 27001 LMS - Pembelajaran Keamanan Informasi',
-  description: 'Platform pembelajaran ISO 27001 untuk pekerja Indonesia',
+  title: 'kelasISO - Pembelajaran Standar ISO',
+  description: 'Platform pembelajaran standar ISO untuk pekerja Indonesia',
 };
 
 export default function RootLayout({

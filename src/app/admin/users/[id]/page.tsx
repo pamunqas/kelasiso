@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/app/api/auth/[...nextauth]/options';
+import { getFrameworkConfig } from '@/lib/framework-colors';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import UserNav from '@/components/UserNav';
@@ -190,20 +191,23 @@ export default async function AdminUserDetailPage({
           {user.certificates.length === 0 ? (
             <p className="text-gray-500">Belum memiliki sertifikat</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {user.certificates.map((cert) => (
-                <div key={cert.id} className="border rounded-lg p-4 bg-yellow-50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">🏆</span>
-                    <div>
-                      <p className="font-semibold text-gray-900">{cert.course.title}</p>
-                      <p className="text-sm text-gray-500">{cert.issuedAt.toLocaleDateString('id-ID')}</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500">No: {cert.certificateNumber}</p>
-                </div>
-              ))}
-            </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+               {user.certificates.map((cert) => {
+                 const config = getFrameworkConfig(cert.course.category);
+                 return (
+                   <div key={cert.id} className={`border ${config.borderColor} rounded-lg p-4 ${config.bgLight}`}>
+                     <div className="flex items-center gap-2 mb-2">
+                       <span className="text-2xl">🏆</span>
+                       <div>
+                         <p className="font-semibold text-gray-900">{cert.course.title}</p>
+                         <p className="text-sm text-gray-500">{cert.issuedAt.toLocaleDateString('id-ID')}</p>
+                       </div>
+                     </div>
+                     <p className="text-xs text-gray-500">No: {cert.certificateNumber}</p>
+                   </div>
+                 );
+               })}
+             </div>
           )}
         </div>
       </main>

@@ -4,6 +4,7 @@ module.exports = {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/lib/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
@@ -23,5 +24,18 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
+  safelist: [
+    {
+      pattern: /^(from|to|bg|text)-(blue|green|purple|orange|pink|teal|rose|cyan|amber|emerald|fuchsia|slate|gray|indigo|violet|red|yellow|sky|lime)-(50|600|700)/,
+    },
+    {
+      pattern: /^hover:bg-(blue|green|purple|orange|pink|teal|rose|cyan|amber|emerald|fuchsia|slate|gray|indigo|violet|red|yellow|sky|lime)-(700)/,
+    },
+    {
+      pattern: /^border-(blue|green|purple|orange|pink|teal|rose|cyan|amber|emerald|fuchsia|slate|gray|indigo|violet|red|yellow|sky|lime)-(400)/,
+    },
+  ],
 };

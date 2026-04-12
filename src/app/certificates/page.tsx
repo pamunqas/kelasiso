@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/app/api/auth/[...nextauth]/options';
+import { getFrameworkConfig } from '@/lib/framework-colors';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import UserNav from '@/components/UserNav';
@@ -27,7 +28,10 @@ export default async function CertificatesPage() {
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Sertifikat</h1>
+            <Link href="/dashboard" className="flex items-center gap-3">
+              <img src="/logo.svg" alt="kelasISO Logo" className="w-10 h-10" />
+              <h1 className="text-2xl font-bold text-gray-900">Sertifikat</h1>
+            </Link>
             <UserNav userName={session.user.name || ''} currentPage="certificates" />
           </div>
         </div>
@@ -51,35 +55,41 @@ export default async function CertificatesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {certificates.map((cert) => (
-              <div
-                key={cert.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden border-2 border-yellow-400"
-              >
-                <div className="bg-yellow-50 p-6 text-center">
-                  <div className="text-4xl mb-2">🏆</div>
-                  <h3 className="font-bold text-gray-900">
-                    Sertifikat Penyelesaian
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {cert.issuedAt.toLocaleDateString('id-ID', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-                </div>
-                <div className="p-6">
-                  <h4 className="font-semibold text-gray-900 mb-2">
-                    {cert.course.title}
-                  </h4>
-                  <p className="text-sm text-gray-500 mb-4">
-                    Nomor: {cert.certificateNumber}
-                  </p>
-                  <PrintButton />
-                </div>
-              </div>
-            ))}
+             {certificates.map((cert) => {
+               const config = getFrameworkConfig(cert.course.category);
+               return (
+<div
+                    key={cert.id}
+                    className={`bg-white rounded-lg shadow-md overflow-hidden border-2 ${config.borderColor}`}
+                  >
+                    <div className={`${config.bgLight} p-6 text-center`}>
+                      <div className="flex justify-center mb-3">
+                        <img src="/logo.svg" alt="Logo" className="w-12 h-12" />
+                      </div>
+                      <div className="text-4xl mb-2">🏆</div>
+                      <h3 className="font-bold text-gray-900">
+                        Sertifikat Penyelesaian
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-2">
+                        {cert.issuedAt.toLocaleDateString('id-ID', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                   <div className="p-6">
+                     <h4 className="font-semibold text-gray-900 mb-2">
+                       {cert.course.title}
+                     </h4>
+                     <p className="text-sm text-gray-500 mb-4">
+                       Nomor: {cert.certificateNumber}
+                     </p>
+                     <PrintButton />
+                   </div>
+                 </div>
+               );
+             })}
           </div>
         )}
       </main>

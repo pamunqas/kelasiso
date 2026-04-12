@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if ((path === '/dashboard' || path.startsWith('/courses') || path.startsWith('/certificates') || path.startsWith('/api/enroll') || path.startsWith('/api/lesson-progress') || path.startsWith('/api/quiz')) && !token) {
+  if ((path === '/dashboard' || path.startsWith('/courses') || path.startsWith('/certificates') || path.startsWith('/api/enroll') || path.startsWith('/api/lesson-progress')) && !token) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
@@ -27,6 +27,5 @@ export const config = {
     '/admin/:path*',
     '/api/enroll/:path*',
     '/api/lesson-progress/:path*',
-    '/api/quiz/:path*',
   ],
 };
